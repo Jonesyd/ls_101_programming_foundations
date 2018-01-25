@@ -49,8 +49,6 @@ def no_response?(response)
   end
 end
 
-
-
 # Error Messages
 number_error  = "Please enter digits only (to two decimal places at most)."
 integer_error = "Please enter whole numbers (no decimal points)"
@@ -60,14 +58,13 @@ term_error    = <<-MSG
 The sum of years AND months cannot be zero.
   Please re-enter:
 MSG
-again_error   = "Just a simple 'Y' or 'N' thanks!"
+again_error = "Just a simple 'Y' or 'N' thanks!"
 
 # Messages
-LINES       = "======================================================="
+LINES = "======================================================="
 welcome = "      Welcome to the Monthly Payment Calculator!"
 prompt(LINES)
 prompt(welcome)
-
 
 loop do
   prompt(LINES)
@@ -147,5 +144,4 @@ loop do
   end
 
   break if no_response?(response)
-
 end
