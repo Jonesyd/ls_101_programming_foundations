@@ -27,8 +27,8 @@ def monthly_rate(annual_rate)
   annual_rate.to_f / 12 / 100
 end
 
-def loan_months(years_of_loan, remainder_months)
-  years_of_loan.to_i * 12 + remainder_months.to_i
+def loan_months(years_of_loan, remainder_mths)
+  years_of_loan.to_i * 12 + remainder_mths.to_i
 end
 
 def monthly_payments(loan_amount, mth_rate, mth_duration)
@@ -84,7 +84,7 @@ loop do
     Enter full years first. How many full years is the loan?
   MSG
   years_of_loan = nil
-  remainder_months = nil
+  remainder_mths = nil
   mth_duration = nil
 
   loop do # non-zero-term loop
@@ -98,14 +98,14 @@ loop do
 
     loop do
       prompt("And how many months (must be less than 12)?")
-      remainder_months = Kernel.gets().chomp()
-      next if remainder_months.to_i >= 12
-      prompt(less_error)    unless zero_or_positive?(remainder_months)
-      prompt(integer_error) unless valid_int?(remainder_months)
-      break if valid_int?(remainder_months) && zero_or_positive?(remainder_months)
+      remainder_mths = Kernel.gets().chomp()
+      next if remainder_mths.to_i >= 12
+      prompt(less_error)    unless zero_or_positive?(remainder_mths)
+      prompt(integer_error) unless valid_int?(remainder_mths)
+      break if valid_int?(remainder_mths) && zero_or_positive?(remainder_mths)
     end
 
-    mth_duration = loan_months(years_of_loan, remainder_months)
+    mth_duration = loan_months(years_of_loan, remainder_mths)
     mth_duration == 0 ? prompt(term_error) : break
   end # close non-zero term loop
 
@@ -139,5 +139,4 @@ loop do
   end
 
   puts "\e[H\e[2J"
-
 end
