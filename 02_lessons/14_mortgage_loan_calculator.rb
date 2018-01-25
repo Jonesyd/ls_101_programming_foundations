@@ -1,7 +1,4 @@
-require "pry"
-
 # Methods
-
 def prompt(message)
   puts(">> #{message}")
 end
