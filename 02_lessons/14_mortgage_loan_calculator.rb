@@ -48,13 +48,13 @@ MSG
 again_error = "Just a simple 'Y' or 'N' thanks!"
 
 # Messages
-LINES = "======================================================="
+lines = "======================================================="
 welcome = "      Welcome to the Monthly Payment Calculator!"
-prompt(LINES)
+prompt(lines)
 prompt(welcome)
 
 loop do
-  prompt(LINES)
+  prompt(lines)
   # Obtaining Inputs
   loan_amount = nil
   loop do
@@ -123,7 +123,7 @@ loop do
   prompt("The initial loan is for $#{format('%02.2f', loan_amount)}")
   prompt("Total Repayments are $#{format('%02.2f', total_payments)}")
   prompt("Interest over the loan is $#{format('%02.2f', total_interest)}")
-  prompt(LINES)
+  prompt(lines)
 
   response = nil
   loop do
@@ -134,7 +134,7 @@ loop do
 
   if response == "N"
     prompt("Okay. Bye!")
-    prompt(LINES)
+    prompt(lines)
     break
   end
 
