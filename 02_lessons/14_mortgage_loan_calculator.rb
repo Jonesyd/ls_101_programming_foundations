@@ -36,16 +36,6 @@ def monthly_payments(loan_amount, mth_rate, mth_duration)
   loan_amount.to_f * (mth_rate / (1 - (1 + mth_rate)**-mth_duration))
 end
 
-def no_response?(response)
-  if response == "N"
-    prompt("Okay. Bye!")
-    prompt(LINES)
-    true
-  else
-    false
-  end
-end
-
 # Error Messages
 number_error  = "Please enter digits only (to two decimal places at most)."
 integer_error = "Please enter whole numbers (no decimal points)"
@@ -110,7 +100,9 @@ loop do
       prompt("And how many months (must be less than 12)?")
       remainder_months = Kernel.gets().chomp()
       next if remainder_months.to_i >= 12
-      valid_int?(remainder_months) ? break : prompt(integer_error)
+      prompt(less_error)    unless zero_or_positive?(remainder_months)
+      prompt(integer_error) unless valid_int?(remainder_months)
+      break if valid_int?(remainder_months) && zero_or_positive?(remainder_months)
     end
 
     mth_duration = loan_months(years_of_loan, remainder_months)
@@ -140,5 +132,12 @@ loop do
     ["N", "Y"].include?(response) ? break : prompt(again_error)
   end
 
-  break if no_response?(response)
+  if response == "N"
+    prompt("Okay. Bye!")
+    prompt(LINES)
+    break
+  end
+
+  puts "\e[H\e[2J"
+
 end
