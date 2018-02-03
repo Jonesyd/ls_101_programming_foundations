@@ -138,5 +138,5 @@ loop do
     break
   end
 
-  puts "\e[H\e[2J"
+  system("clear") || system("cls")
 end
