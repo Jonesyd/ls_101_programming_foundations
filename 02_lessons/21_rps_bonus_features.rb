@@ -1,9 +1,9 @@
 RULE = {
   rock: ["scissors", "lizard"],
-  paper: ["rock", "sprock"],
+  paper: ["rock", "spock"],
   scissors: ["paper", "lizard"],
-  lizard: ["sprock", "paper"],
-  sprock: ["scissors", "rock"]
+  lizard: ["spock", "paper"],
+  spock: ["scissors", "rock"]
 }
 
 WIN = 5
@@ -41,7 +41,7 @@ def clear
   system("clear") || system("cls")
 end
 
-weapon = { r: "rock", p: "paper", s: "scissors", l: "lizard", k: "sprock" }
+weapon = { r: "rock", p: "paper", s: "scissors", l: "lizard", k: "spock" }
 
 loop do
   player_score = 0
