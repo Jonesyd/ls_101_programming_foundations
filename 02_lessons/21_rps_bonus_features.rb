@@ -1,4 +1,4 @@
-WEAPON = { r: "rock", p: "paper", s: "scissors", l: "lizard", k: "spock" }
+WEAPONS = { r: "rock", p: "paper", s: "scissors", l: "lizard", k: "spock" }
 
 RULE = {
   rock: ["scissors", "lizard"],
@@ -52,13 +52,13 @@ loop do
 
     loop do
       prompt("Enter a single letter to make your choice: ")
-      WEAPON.each { |k, v| puts "     #{k}  (for #{v})" }
+      WEAPONS.each { |k, v| puts "     #{k}  (for #{v})" }
       choice = Kernel.gets().chomp().downcase.to_sym
-      WEAPON.key?(choice) ? break : prompt("That's not a valid choice.")
+      WEAPONS.key?(choice) ? break : prompt("That's not a valid choice.")
     end
 
-    computers_weapon = WEAPON.values.sample
-    players_weapon = WEAPON[choice]
+    computers_weapon = WEAPONS.values.sample
+    players_weapon = WEAPONS[choice]
 
     clear
     prompt("You chose: #{players_weapon}. Computer chose: #{computers_weapon}")
