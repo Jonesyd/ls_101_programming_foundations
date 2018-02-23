@@ -1,3 +1,5 @@
+WEAPON = { r: "rock", p: "paper", s: "scissors", l: "lizard", k: "spock" }
+
 RULE = {
   rock: ["scissors", "lizard"],
   paper: ["rock", "spock"],
@@ -41,8 +43,6 @@ def clear
   system("clear") || system("cls")
 end
 
-weapon = { r: "rock", p: "paper", s: "scissors", l: "lizard", k: "spock" }
-
 loop do
   player_score = 0
   computer_score = 0
@@ -52,20 +52,21 @@ loop do
 
     loop do
       prompt("Enter a single letter to make your choice: ")
-      weapon.each { |k, v| puts "     #{k}  (for #{v})" }
+      WEAPON.each { |k, v| puts "     #{k}  (for #{v})" }
       choice = Kernel.gets().chomp().downcase.to_sym
-      weapon.key?(choice) ? break : prompt("That's not a valid choice.")
+      WEAPON.key?(choice) ? break : prompt("That's not a valid choice.")
     end
 
-    computer_choice = weapon.values.sample
+    computers_weapon = WEAPON.values.sample
+    players_weapon = WEAPON[choice]
 
     clear
-    prompt("You chose: #{weapon[choice]}. Computer chose: #{computer_choice}")
-    display_results(weapon[choice], computer_choice)
+    prompt("You chose: #{players_weapon}. Computer chose: #{computers_weapon}")
+    display_results(players_weapon, computers_weapon)
 
-    if win?(weapon[choice], computer_choice)
+    if win?(players_weapon, computers_weapon)
       player_score += 1
-    elsif win?(computer_choice, weapon[choice])
+    elsif win?(computers_weapon, players_weapon)
       computer_score += 1
     end
 
