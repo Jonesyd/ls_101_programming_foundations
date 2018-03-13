@@ -11,6 +11,8 @@ p hash[:pear] = 'Fruit'
 p hash[:broccoli] = 'Vegetable'
 p hash
 
+p hash[:orange]
+
 # hash.each do |key, _ |
 #   if hash[key] == hash[:apple] || hash[key] == hash[:pear]
 #     hash[key] = "Fruit"
