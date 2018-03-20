@@ -104,7 +104,6 @@ loop do
       prompt(integer_error) unless valid_int?(remainder_mths)
       break if valid_int?(remainder_mths) && zero_or_positive?(remainder_mths)
     end
-
     mth_duration = loan_months(years_of_loan, remainder_mths)
     mth_duration == 0 ? prompt(term_error) : break
   end # close non-zero term loop
