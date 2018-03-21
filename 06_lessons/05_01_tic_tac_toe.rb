@@ -12,9 +12,11 @@ def prompt(msg)
 end
 
 # rubocop:disable Metrics/AbcSize
-def display_board(brd)
+def display_board(brd, player_score={player: 0, computer:0})
   system("clear") || system("cls")
   puts "You're a #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}"
+  puts "First to 5, wins the match"
+  puts "Match score is: You #{player_score[:player]}, Computer #{player_score[:computer]}"
   puts ""
   puts "     |     |"
   puts "  #{brd[1]}  |  #{brd[2]}  |  #{brd[3]}"
@@ -44,7 +46,7 @@ end
 def player_places_piece!(brd)
   square = ""
   loop do
-    prompt "Choose a square (#{empty_squares(brd).join(', ')}):"
+    prompt "Choose a square (#{joinor(empty_squares(brd))}):"
     square = gets.chomp.to_i
     break if empty_squares(brd).include?(square)
     prompt "Sorry, that's not a valid choice, try again"
@@ -76,45 +78,72 @@ def detect_winner(brd)
   nil
 end
 
-loop do
-  board = initialize_board
-
-  loop do
-    display_board(board)
-
-    player_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
-
-    computer_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
-  end
-
-  display_board(board)
-
-  if someone_won?(board)
-    prompt "#{detect_winner(board)} won!"
+def joinor(array, separator=", ", conj="or" )
+  return nil unless array.is_a?(Array)
+  case array.size
+  when 0 then ""
+  when 1 then array[0].to_s
+  when 2 then "#{array[0]} #{conj} #{array[1]}"
   else
-    prompt "It's a tie"
+    array[-1] = "#{conj} #{array[-1]}"
+    array.join(separator)
+  end
+end
+
+def update_match_score(players, brd)
+  players.each do | comp, score |
+    if detect_winner(brd) == comp.to_s.capitalize
+      players[comp] += 1
+    end
+  end
+end
+
+def match_winner?(players)
+  players.any? do |comp, score|
+    score >= 5
+  end
+end
+
+loop do  # match loop
+  competitors = { player: 0, computer: 0 }
+
+  loop do # game loop
+    board = initialize_board
+
+    loop do # move loop
+      display_board(board, competitors)
+
+      player_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+
+      computer_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+    end
+
+    display_board(board, competitors)
+
+    update_match_score(competitors, board)
+    display_board(board, competitors)
+
+    if someone_won?(board)
+      prompt "#{detect_winner(board)} won!"
+    else
+      prompt "It's a tie"
+    end
+
+    break if match_winner?(competitors)
+
   end
 
-  prompt "Play again? (y or n)"
-  answer = gets.chomp.downcase
-  break unless answer.downcase.start_with?("y")
+  answer = nil
+  loop do
+    prompt "Play again? (y or n)"
+    answer = gets.chomp.downcase
+    break if ["y", "n"].include?(answer.downcase)
+    puts "Just a simple 'y' or 'n' thanks!"
+  end
+
+  break unless answer.downcase.include?("y")
 end
 
 puts "Thanks for playing Tic Tac Toe. Good Bye!"
-
-=begin
-Tic Tac Toe - General Sequence
-
-1. Display the initial empty 3x3 board.
-2. Ask the user to mark a square.
-3. Computer marks a square.
-4. Display the updated board state.
-5. If winner, display winner.
-6. If board is full, display tie.
-7. If neither winner nor board is full, go to #2
-8. Play again?
-9. If yes, go to #1
-10. Good bye!
-=end
