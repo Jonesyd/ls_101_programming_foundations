@@ -11,12 +11,13 @@ def prompt(msg)
   puts "=> #{msg}"
 end
 
-# rubocop:disable Metrics/AbcSize
-def display_board(brd, player_score={player: 0, computer:0})
+# rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+def display_board(brd, player_score={ player: 0, computer: 0 })
   system("clear") || system("cls")
   puts "You're a #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}"
   puts "First to 5, wins the match"
-  puts "Match score is: You #{player_score[:player]}, Computer #{player_score[:computer]}"
+  puts "Match score is: You #{player_score[:player]}," \
+       " Computer #{player_score[:computer]}"
   puts ""
   puts "     |     |"
   puts "  #{brd[1]}  |  #{brd[2]}  |  #{brd[3]}"
@@ -31,7 +32,7 @@ def display_board(brd, player_score={player: 0, computer:0})
   puts "     |     |"
   puts ""
 end
-# rubocop:enable Metrics/AbcSize
+# rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
 def initialize_board
   new_board = {}
@@ -78,7 +79,7 @@ def detect_winner(brd)
   nil
 end
 
-def joinor(array, separator=", ", conj="or" )
+def joinor(array, separator=", ", conj="or")
   return nil unless array.is_a?(Array)
   case array.size
   when 0 then ""
@@ -91,7 +92,7 @@ def joinor(array, separator=", ", conj="or" )
 end
 
 def update_match_score(players, brd)
-  players.each do | comp, score |
+  players.each do |comp, _|
     if detect_winner(brd) == comp.to_s.capitalize
       players[comp] += 1
     end
@@ -99,12 +100,12 @@ def update_match_score(players, brd)
 end
 
 def match_winner?(players)
-  players.any? do |comp, score|
+  players.any? do |_, score|
     score >= 5
   end
 end
 
-loop do  # match loop
+loop do # match loop
   competitors = { player: 0, computer: 0 }
 
   loop do # game loop
@@ -120,8 +121,6 @@ loop do  # match loop
       break if someone_won?(board) || board_full?(board)
     end
 
-    display_board(board, competitors)
-
     update_match_score(competitors, board)
     display_board(board, competitors)
 
@@ -132,18 +131,17 @@ loop do  # match loop
     end
 
     break if match_winner?(competitors)
-
   end
 
   answer = nil
   loop do
     prompt "Play again? (y or n)"
     answer = gets.chomp.downcase
-    break if ["y", "n"].include?(answer.downcase)
+    break if ["y", "n"].include?(answer)
     puts "Just a simple 'y' or 'n' thanks!"
   end
 
-  break unless answer.downcase.include?("y")
+  break unless answer.include?("y")
 end
 
 puts "Thanks for playing Tic Tac Toe. Good Bye!"
