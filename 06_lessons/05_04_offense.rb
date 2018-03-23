@@ -73,6 +73,8 @@ def computer_places_piece!(brd)
     brd[offend_move] = COMPUTER_MARKER
   elsif !defend_move.nil?
     brd[defend_move] = COMPUTER_MARKER
+  elsif brd[5] == INITIAL_MARKER
+    brd[5] = COMPUTER_MARKER
   else
     square = empty_squares(brd).sample
     brd[square] = COMPUTER_MARKER
@@ -126,8 +128,9 @@ def update_match_score(brd, score_hash)
 end
 
 def match_winner?(players)
-  players.any? do |_, score|
-    score >= 5
+  players.any? do |player, score|
+    [:player, :computer].include?(player) &&
+      score >= 5
   end
 end
 
