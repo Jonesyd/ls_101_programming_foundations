@@ -150,7 +150,7 @@ def match_winner?(players)
   end
 end
 
-def reset_first_turn
+def reset_first_turn!
   FIRST_TURN.each do |comp, value|
     FIRST_TURN[comp] = false
   end
@@ -165,7 +165,7 @@ def select_first_mover_for_match
     MSG
     choice = gets.chomp.to_i
     if [1, 2].include?(choice)
-      set_first_turn(choice)
+      set_first_turn!(choice)
       break
     else
       prompt just_select_msg
@@ -174,7 +174,7 @@ def select_first_mover_for_match
   nil
 end
 
-def set_first_turn(num)
+def set_first_turn!(num)
   FIRST_TURN[:player] = true if num == 1
   FIRST_TURN[:computer] = true if num == 2
 end
@@ -184,7 +184,7 @@ def set_current_player
   if first.keys.count == 1
     current_player = first.key(true)
   else
-    reset_first_turn
+    reset_first_turn!
     set_current_player
   end
 end
@@ -225,7 +225,7 @@ end
 
 loop do # match loop
   competitors = { player: 0, computer: 0, ties: 0 }
-  reset_first_turn
+  reset_first_turn!
   select_first_mover_for_match
 
   loop do # game loop
@@ -247,4 +247,4 @@ loop do # match loop
   break unless another_match?
 end
 
-puts "Thanks for playing Tic Tac Toe. Good Bye!"
+puts "Thanks for playing Tic Tac Toe. You did your best! Good Bye!"
