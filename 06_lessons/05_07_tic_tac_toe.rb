@@ -1,9 +1,3 @@
-# nice to have match score
-# added functionality based on last win as a bonus.
-
-require "pry"
-require "pry-byebug"
-
 INITIAL_MARKER = " "
 PLAYER_MARKER = "X"
 COMPUTER_MARKER = "O"
@@ -162,7 +156,7 @@ def first_mover_match!
     MSG
     choice = gets.chomp.to_i
     if [1, 2, 3, 4].include?(choice)
-      set_first_turn!(choice)
+      first_turn!(choice)
       break
     else
       prompt "Just select a number (1 to 4) to decide who goes first."
@@ -172,18 +166,17 @@ def first_mover_match!
 end
 # rubocop:enable Metrics/MethodLength
 
-def set_first_turn!(num)  # each method?
-
-  # test each method here
-
-  FIRST_TURN[:player] = true if num == 1
-  FIRST_TURN[:computer] = true if num == 2
-  FIRST_TURN[:alternate_p1] = true if num == 3
-  FIRST_TURN[:alternate_c1] = true if num == 4
+def first_turn!(num)
+  case num
+  when 1 then FIRST_TURN[:player] = true
+  when 2 then FIRST_TURN[:computer] = true
+  when 3 then FIRST_TURN[:alternate_p1] = true
+  when 4 then FIRST_TURN[:alternate_c1] = true
+  end
 end
 
 def set_current_player
-  first = FIRST_TURN.select { |comp, value| value == true }
+  first = FIRST_TURN.select { |_, value| value == true }
   if first.keys.count == 1
     case first.key(true)
     when :player then return first.key(true)
@@ -235,15 +228,13 @@ end
 def alt_switch(player, comp)
   game_count = comp.values.reduce(:+)
   if game_count.odd? &&
-    ( FIRST_TURN[:alternate_p1] == true ||
-      FIRST_TURN[:alternate_c1] == true )
-    current_player = alternate_player(player)
+     (FIRST_TURN[:alternate_p1] == true ||
+     FIRST_TURN[:alternate_c1] == true)
+    alternate_player(player)
   else
-    current_player = player
+    player
   end
-  current_player
 end
-
 
 loop do # match loop
   competitors = { player: 0, computer: 0, ties: 0 }
