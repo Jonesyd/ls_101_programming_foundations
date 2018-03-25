@@ -1,7 +1,5 @@
 # nice to have match score
 # added functionality based on last win as a bonus.
-# What about choose for each game?
-# Look at alternate first goes.
 
 require "pry"
 require "pry-byebug"
@@ -16,13 +14,9 @@ WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
 FIRST_TURN = {
   player: false,
   computer: false,
-  choose: false
+  alternate_p1: false,
+  alternate_c1: false
 }
-
-just_select_msg = <<-MSG
-  Thanks! But just select '1' or '2' to decide who goes first.
-MSG
-
 
 def prompt(msg)
   puts "=> #{msg}"
@@ -151,45 +145,60 @@ def match_winner?(players)
 end
 
 def reset_first_turn!
-  FIRST_TURN.each do |comp, value|
+  FIRST_TURN.each do |comp, _|
     FIRST_TURN[comp] = false
   end
 end
 
-def select_first_mover_for_match
-  loop do # choose first turn
+# rubocop:disable Metrics/MethodLength
+def first_mover_match!
+  loop do
     prompt <<-MSG
       Select who goes first:
-                 '1' for you
-                 '2' for computer
+                 '1' for you every game
+                 '2' for computer every game
+                 '3' to alternate between games (you first on first game)
+                 '4' to alternate between games (computer first on first game)
     MSG
     choice = gets.chomp.to_i
-    if [1, 2].include?(choice)
+    if [1, 2, 3, 4].include?(choice)
       set_first_turn!(choice)
       break
     else
-      prompt just_select_msg
+      prompt "Just select a number (1 to 4) to decide who goes first."
     end
   end
   nil
 end
+# rubocop:enable Metrics/MethodLength
 
-def set_first_turn!(num)
+def set_first_turn!(num)  # each method?
+
+  # test each method here
+
   FIRST_TURN[:player] = true if num == 1
   FIRST_TURN[:computer] = true if num == 2
+  FIRST_TURN[:alternate_p1] = true if num == 3
+  FIRST_TURN[:alternate_c1] = true if num == 4
 end
 
 def set_current_player
   first = FIRST_TURN.select { |comp, value| value == true }
   if first.keys.count == 1
-    current_player = first.key(true)
+    case first.key(true)
+    when :player then return first.key(true)
+    when :computer then return first.key(true)
+    when :alternate_p1 then return :player
+    when :alternate_c1 then return :computer
+    end
   else
     reset_first_turn!
+    first_mover_match!
     set_current_player
   end
 end
 
-def alternate_player(comp)
+def alternate_player(comp) # should be able to use this.
   return :player if comp == :computer
   return :computer if comp == :player
 end
@@ -223,15 +232,29 @@ def another_match?
   answer ? true : false
 end
 
+def alt_switch(player, comp)
+  game_count = comp.values.reduce(:+)
+  if game_count.odd? &&
+    ( FIRST_TURN[:alternate_p1] == true ||
+      FIRST_TURN[:alternate_c1] == true )
+    current_player = alternate_player(player)
+  else
+    current_player = player
+  end
+  current_player
+end
+
+
 loop do # match loop
   competitors = { player: 0, computer: 0, ties: 0 }
   reset_first_turn!
-  select_first_mover_for_match
+  first_mover_match!
 
   loop do # game loop
     board = initialize_board
     display_board(board, competitors)
     current_player = set_current_player
+    current_player = alt_switch(current_player, competitors)
 
     loop do # move loop
       place_piece!(board, current_player, competitors)
@@ -247,4 +270,4 @@ loop do # match loop
   break unless another_match?
 end
 
-puts "Thanks for playing Tic Tac Toe. You did your best! Good Bye!"
+puts "Thanks for playing Tic Tac Toe. You did well! Good Bye!"
