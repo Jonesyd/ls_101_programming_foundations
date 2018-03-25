@@ -17,7 +17,7 @@ def prompt(msg)
   puts "=> #{msg}"
 end
 
-# rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+# rubocop:disable Metrics/AbcSize
 def display_board(brd, score_hash={ player: 0, computer: 0, ties: 0 })
   display_introduction
   display_match_score(score_hash)
@@ -35,7 +35,7 @@ def display_board(brd, score_hash={ player: 0, computer: 0, ties: 0 })
   puts "     |     |"
   puts ""
 end
-# rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+# rubocop:enable Metrics/AbcSize
 
 def display_introduction
   system("clear") || system("cls")
