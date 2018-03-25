@@ -11,6 +11,7 @@ FIRST_TURN = {
   alternate_p1: false,
   alternate_c1: false
 }
+WINNING_SCORE = 5
 
 def prompt(msg)
   puts "=> #{msg}"
@@ -18,12 +19,8 @@ end
 
 # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
 def display_board(brd, score_hash={ player: 0, computer: 0, ties: 0 })
-  system("clear") || system("cls")
-  puts "You're a #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}"
-  puts "First to 5, wins the match"
-  puts "Match score is: You #{score_hash[:player]}, " \
-       "Computer #{score_hash[:computer]}, " \
-       "Ties #{score_hash[:ties]}"
+  display_introduction
+  display_match_score(score_hash)
   puts ""
   puts "     |     |"
   puts "  #{brd[1]}  |  #{brd[2]}  |  #{brd[3]}"
@@ -39,6 +36,18 @@ def display_board(brd, score_hash={ player: 0, computer: 0, ties: 0 })
   puts ""
 end
 # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+
+def display_introduction
+  system("clear") || system("cls")
+  puts "You're a #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}"
+  puts "First to #{WINNING_SCORE}, wins the match"
+end
+
+def display_match_score(score_hash)
+  puts "Match score is: You #{score_hash[:player]}, " \
+       "Computer #{score_hash[:computer]}, " \
+       "Ties #{score_hash[:ties]}"
+end
 
 def initialize_board
   new_board = {}
@@ -116,25 +125,21 @@ def joinor(array, separator=", ", conj="or")
   end
 end
 
-def tie?(brd, score_hash)
-  if board_full?(brd) && detect_winner(brd).nil?
-    score_hash[:ties] += 1
-  end
-end
-
 def update_match_score(brd, score_hash)
   score_hash.each do |comp, _|
     if detect_winner(brd) == comp.to_s.capitalize
       score_hash[comp] += 1
     end
   end
-  tie?(brd, score_hash)
+  if board_full?(brd) && detect_winner(brd).nil?
+    score_hash[:ties] += 1
+  end
 end
 
 def match_winner?(players)
   players.any? do |player, score|
     [:player, :computer].include?(player) &&
-      score >= 5
+      score >= WINNING_SCORE
   end
 end
 
@@ -222,7 +227,7 @@ def another_match?
     break if ["y", "n"].include?(answer)
     puts "Just a simple 'y' or 'n' thanks!"
   end
-  answer ? true : false
+  answer == "y" ? true : false
 end
 
 def alt_switch(player, comp)
