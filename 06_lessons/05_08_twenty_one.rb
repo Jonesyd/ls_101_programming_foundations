@@ -1,5 +1,8 @@
-# Announce the card (make it more fun)
-# Show Dealers Cards (make it more fun)
+LIMIT = 21
+
+# Use constants
+# Fix up the parameters so that they are less confusing
+# Use a hash for player
 
 require "pry"
 require "pry-byebug"
@@ -25,7 +28,7 @@ def blank_line
 end
 
 def prompt(msg)
-  puts ">> #{msg}"
+  puts ">>  #{msg}"
 end
 
 def deal!(hand, deck, crds=1)
@@ -34,7 +37,6 @@ def deal!(hand, deck, crds=1)
     hand << card
     deck.delete(card)
   end
-
 end
 
 def display_dealer(hand)
@@ -43,14 +45,21 @@ def display_dealer(hand)
   prompt "Dealer has: #{first_card} and unknown card"
 end
 
-def display_player(hand, total)
+def display_player(hand, total, name="You")
   word_array = []
   hand.each do |card|
     word_array << long_word(card[1])
   end
-  blank_line
-  prompt "You have: #{joinor(word_array)}" \
+  name == "You" ? have = "have" : have = "has"
+  prompt "#{name} #{have}: #{joinor(word_array)}" \
   " ... ... #{total} is the total"
+end
+
+def display_each_card(hand, name)
+  card = long_word(hand.last[1])
+  name == "You" ? draw = "draw" : draw = "draws"
+  prompt "#{name} #{draw} a #{card}"
+  sleep(0.5)
 end
 
 def joinor(ary, sep=", ", conj="and")
@@ -92,7 +101,7 @@ def sum(hand)
     hand_values << card_value(card[1])
   end
   total = hand_values.reduce(:+)
-  if total > 21
+  if total > LIMIT
     hand.select { |card| card[1]=="A" }.count.times do
       total -= 10
     end
@@ -101,7 +110,18 @@ def sum(hand)
 end
 
 def bust?(hand)
-  sum(hand) > 21 ? true : false
+  sum(hand) > LIMIT ? true : false
+end
+
+def auto_sit?(hand)
+  hand == LIMIT ? true : false
+end
+
+def display_auto_sit
+  sleep(0.5)
+  prompt "Let's just assume you stay!"
+  sleep(0.5)
+  blank_line
 end
 
 def hit?
@@ -122,12 +142,19 @@ end
 
 def display_dealer_bust
   prompt "Dealer Bust!"
+  blank_line
   prompt "You win!!! Congratulations!"
 end
 
-def display_game_result(player, dealer)
-  prompt "dealer total is #{dealer}" \
-         " and your total is #{player}"
+def display_second_card(dealer)
+  card = long_word(dealer[1][1])
+  prompt "Dealer's second card is a #{card}"
+end
+
+def display_result(player, dealer)
+  sleep(0.5)
+  blank_line
+  prompt "Your total is #{player}"
   if dealer > player
     prompt "Dealer wins. Better luck next time."
   elsif player > dealer
@@ -144,8 +171,7 @@ def quit_game?
     prompt "Another game (just a simple 'y' or 'n')"
     answer = gets.chomp.downcase
     break if ["y", "n"].include?(answer)
-    prompt "Come on, you're better than this," \
-           " just type 'y' or 'n' and that's it"
+    prompt "Thanks, but just type a 'y' or 'n'"
   end
   answer == "n" ? true : false
 end
@@ -176,25 +202,37 @@ loop do # game loop
 
     deal!(player_hand, deck)
     player_total = sum(player_hand)
-    prompt display_player(player_hand, player_total)
+    display_each_card(player_hand, "You")
+    display_player(player_hand, player_total)
 
     if bust?(player_hand)
       display_player_bust
       break
     end
+
+    if auto_sit?(player_total)
+      display_auto_sit
+      break
+    end
   end
 
-  if player_total <= 21
+  if player_total <= LIMIT
     loop do # dealer
       break if dealer_total >= 17
       deal!(dealer_hand, deck)
+      display_each_card(dealer_hand, "Dealer")
       dealer_total = sum(dealer_hand)
     end
-    display_dealer_bust if bust?(dealer_hand)
+    if bust?(dealer_hand)
+      display_dealer_bust
+    else prompt "Dealer sits"
+    end
   end
 
   if !bust?(dealer_hand) && !bust?(player_hand)
-    display_game_result(player_total, dealer_total)
+    display_second_card(dealer_hand)
+    display_player(dealer_hand, dealer_total, "Dealer")
+    display_result(player_total, dealer_total)
   end
 
   break if quit_game?
