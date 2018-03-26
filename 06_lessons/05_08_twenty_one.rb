@@ -1,24 +1,8 @@
+# Announce the card (make it more fun)
+# Show Dealers Cards (make it more fun)
+
 require "pry"
 require "pry-byebug"
-=begin
-1. Initialize deck
-2. Deal cards to player and dealer
-3. Player turn: hit or stay
-  - repeat until bust or "stay"
-4. If player bust, dealer wins.
-5. Dealer turn: hit or stay
-  - repeat until total >= 17
-6. If dealer bust, player wins.
-7. Compare cards and declare winner.
-=end
-
-def clear
-  system("clear") || system("cls")
-end
-
-def prompt(msg)
-  puts ">> #{msg}"
-end
 
 def initialize_deck
   deck = []
@@ -32,25 +16,41 @@ def initialize_deck
   deck
 end
 
+def clear
+  system("clear") || system("cls")
+end
+
+def blank_line
+  puts ""
+end
+
+def prompt(msg)
+  puts ">> #{msg}"
+end
+
 def deal!(hand, deck, crds=1)
   crds.times do
     card = deck.sample
     hand << card
     deck.delete(card)
   end
+
 end
 
 def display_dealer(hand)
   first_card = long_word(hand[0][1])
-  "Dealer has: #{first_card} and unknown card"
+  blank_line
+  prompt "Dealer has: #{first_card} and unknown card"
 end
 
-def display_player(hand)
+def display_player(hand, total)
   word_array = []
   hand.each do |card|
     word_array << long_word(card[1])
   end
-  "You have: #{joinor(word_array)}"
+  blank_line
+  prompt "You have: #{joinor(word_array)}" \
+  " ... ... #{total} is the total"
 end
 
 def joinor(ary, sep=", ", conj="and")
@@ -91,60 +91,105 @@ def hand_sum(hand)
   hand.each do |card|
     hand_values << card_value(card[1])
   end
-  hand_values.reduce(:+)
+  total = hand_values.reduce(:+)
+  if total > 21
+    hand.select { |card| card[1]=="A" }.count.times do
+      total -= 10
+    end
+  end
+  total
 end
 
 def bust?(hand)
   hand_sum(hand) > 21 ? true : false
 end
 
-# def ace_value(hand)
-#   if hand_sum(hand) > 21 && # card includes ace ...
-#   # hand value is greater than 21, then make one
-#   end
-# end
-
-# program start
-
-clear
-deck = initialize_deck
-player_hand = []
-dealer_hand = []
-
-deal!(player_hand, deck, 2)
-prompt "player hand is #{player_hand}"
-p deck.count
-deal!(dealer_hand, deck, 2)
-prompt "dealer hand is #{dealer_hand}"
-p deck.count
-
-prompt display_dealer(dealer_hand)
-prompt display_player(player_hand)
-
-player_total = hand_sum(player_hand)
-dealer_total = hand_sum(dealer_hand)
-
-prompt "Player total is #{player_total}"
-# prompt "Dealer total is #{dealer_total}"
-
-loop do # Hit or Stay
-  move = nil
+def hit?
+  decision = nil
   loop do # User Input
-    prompt "Hit or Stay? (type 'h' or 's')"
-    move = gets.chomp.downcase
-    break if ["h", "s"].include?(move)
-    prompt "just select 'h' or 's' thanks"
+    prompt "Hit or Sit? (type 'h' or 's')"
+    decision = gets.chomp.downcase
+    break if ["h", "s"].include?(decision)
+    prompt "Come on, you can do it, just type a 'h' or 's'"
   end
-  break if move == "s"
-  deal!(player_hand, deck)
-  prompt display_player(player_hand)
-  player_total = hand_sum(player_hand)
-  prompt "Player total is #{player_total}"
-  if bust?(player_hand)
-    prompt "Bust! Total is #{hand_sum(player_hand)}"
-    break
+  decision == "h" ? true : false
+end
+
+def display_game_result(player, dealer)
+  prompt "dealer total is #{dealer}" \
+         " and your total is #{player}"
+  if dealer > player
+    prompt "Dealer wins. Better luck next time."
+  elsif player > dealer
+    prompt "You WIN! CONGRATULATIONS!"
+  else
+    prompt "Even scores ... push ... no winner, no loser."
   end
 end
 
-p player_hand
-# need to handle ace total on bust -- separate method I think.
+def quit_game?
+  answer = nil
+  loop do # another game
+    blank_line
+    prompt "Another game (just a simple 'y' or 'n')"
+    answer = gets.chomp.downcase
+    break if ["y", "n"].include?(answer)
+    prompt "Come on, you're better than this," \
+           " just type 'y' or 'n' and that's it"
+  end
+  answer == "n" ? true : false
+end
+
+loop do # game loop
+  clear
+  deck = initialize_deck
+  player_hand = []
+  dealer_hand = []
+
+
+  deal!(player_hand, deck, 2)
+  player_total = hand_sum(player_hand)
+
+  deal!(dealer_hand, deck, 2)
+  dealer_total = hand_sum(dealer_hand)
+
+  display_dealer(dealer_hand)
+  display_player(player_hand, player_total)
+
+  loop do # Hit or Sit
+    break unless hit?
+
+    deal!(player_hand, deck)
+    player_total = hand_sum(player_hand)
+    prompt display_player(player_hand, player_total)
+
+    if bust?(player_hand)
+      prompt "Bust!"
+      prompt "Dealer wins. Better luck next time."
+      break
+    end
+  end
+
+  if player_total <= 21
+    loop do # dealer
+      break if dealer_total >= 17
+      deal!(dealer_hand, deck)
+      dealer_total = hand_sum(dealer_hand)
+    end
+
+    if bust?(dealer_hand)
+      prompt "Dealer Bust!"
+      prompt "You win!!! Congratulations!"
+    end
+  end
+
+  if !bust?(dealer_hand) && !bust?(player_hand)
+    display_game_result(player_total, dealer_total)
+  end
+
+  break if quit_game?
+end
+
+blank_line
+prompt "Thanks for playing. You did good."
+blank_line
