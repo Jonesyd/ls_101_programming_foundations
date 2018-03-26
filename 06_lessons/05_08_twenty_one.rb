@@ -46,9 +46,12 @@ def display_dealer(hand)
 end
 
 def display_player(hand)
-  first_card = long_word(hand[0][1])
-  second_card = long_word(hand[1][1])
-  "You have: #{first_card} and #{second_card}"
+  word_array = ""
+  hand.each do |card|
+    word_array << long_word(card[1])
+  end
+  # Format "word_array" - re-create the joinor method
+  "You have: #{word_array.inspect}"
 end
 
 def long_word(letter)
@@ -100,6 +103,23 @@ player_total = hand_sum(player_hand)
 dealer_total = hand_sum(dealer_hand)
 
 prompt "Player total is #{player_total}"
-prompt "Dealer total is #{dealer_total}"
+# prompt "Dealer total is #{dealer_total}"
+
+loop do # Hit or Stay
+  move = nil
+  loop do # User Input
+    prompt "Hit or Stay? (type 'h' or 's')"
+    move = gets.chomp.downcase
+    break if ["h", "s"].include?(move)
+    prompt "just select 'h' or 's' thanks"
+  end
+  break if move == "s"
+  deal!(player_hand, deck)
+  prompt display_player(player_hand)
+  player_total = hand_sum(player_hand)
+  # expand out display for more cards so I can see them
+  prompt "Player total is #{player_total}"
+end
+
 
 # need to handle ace total on bust -- separate method I think.
