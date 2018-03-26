@@ -86,7 +86,7 @@ def card_value(card)
   value
 end
 
-def hand_sum(hand)
+def sum(hand)
   hand_values = []
   hand.each do |card|
     hand_values << card_value(card[1])
@@ -101,7 +101,7 @@ def hand_sum(hand)
 end
 
 def bust?(hand)
-  hand_sum(hand) > 21 ? true : false
+  sum(hand) > 21 ? true : false
 end
 
 def hit?
@@ -110,9 +110,19 @@ def hit?
     prompt "Hit or Sit? (type 'h' or 's')"
     decision = gets.chomp.downcase
     break if ["h", "s"].include?(decision)
-    prompt "Come on, you can do it, just type a 'h' or 's'"
+    prompt "Thanks, but just type a 'h' or 's'"
   end
   decision == "h" ? true : false
+end
+
+def display_player_bust
+  prompt "Bust!"
+  prompt "Dealer wins. Better luck next time."
+end
+
+def display_dealer_bust
+  prompt "Dealer Bust!"
+  prompt "You win!!! Congratulations!"
 end
 
 def display_game_result(player, dealer)
@@ -140,18 +150,23 @@ def quit_game?
   answer == "n" ? true : false
 end
 
+def display_goodbye
+  blank_line
+  prompt "Thanks for playing. You did good."
+  blank_line
+end
+
 loop do # game loop
   clear
   deck = initialize_deck
   player_hand = []
   dealer_hand = []
 
-
   deal!(player_hand, deck, 2)
-  player_total = hand_sum(player_hand)
+  player_total = sum(player_hand)
 
   deal!(dealer_hand, deck, 2)
-  dealer_total = hand_sum(dealer_hand)
+  dealer_total = sum(dealer_hand)
 
   display_dealer(dealer_hand)
   display_player(player_hand, player_total)
@@ -160,12 +175,11 @@ loop do # game loop
     break unless hit?
 
     deal!(player_hand, deck)
-    player_total = hand_sum(player_hand)
+    player_total = sum(player_hand)
     prompt display_player(player_hand, player_total)
 
     if bust?(player_hand)
-      prompt "Bust!"
-      prompt "Dealer wins. Better luck next time."
+      display_player_bust
       break
     end
   end
@@ -174,13 +188,9 @@ loop do # game loop
     loop do # dealer
       break if dealer_total >= 17
       deal!(dealer_hand, deck)
-      dealer_total = hand_sum(dealer_hand)
+      dealer_total = sum(dealer_hand)
     end
-
-    if bust?(dealer_hand)
-      prompt "Dealer Bust!"
-      prompt "You win!!! Congratulations!"
-    end
+    display_dealer_bust if bust?(dealer_hand)
   end
 
   if !bust?(dealer_hand) && !bust?(player_hand)
@@ -190,6 +200,4 @@ loop do # game loop
   break if quit_game?
 end
 
-blank_line
-prompt "Thanks for playing. You did good."
-blank_line
+display_goodbye
