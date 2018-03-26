@@ -46,12 +46,22 @@ def display_dealer(hand)
 end
 
 def display_player(hand)
-  word_array = ""
+  word_array = []
   hand.each do |card|
     word_array << long_word(card[1])
   end
-  # Format "word_array" - re-create the joinor method
-  "You have: #{word_array.inspect}"
+  "You have: #{joinor(word_array)}"
+end
+
+def joinor(ary, sep=", ", conj="and")
+  case ary.size
+  when 0 then ""
+  when 1 then ary[0].to_s
+  when 2 then "#{ary[0]} #{conj} #{ary[1]}"
+  else
+    ary[-1] = "#{conj} #{ary[-1]}"
+    ary.join(sep)
+  end
 end
 
 def long_word(letter)
@@ -83,6 +93,18 @@ def hand_sum(hand)
   end
   hand_values.reduce(:+)
 end
+
+def bust?(hand)
+  hand_sum(hand) > 21 ? true : false
+end
+
+# def ace_value(hand)
+#   if hand_sum(hand) > 21 && # card includes ace ...
+#   # hand value is greater than 21, then make one
+#   end
+# end
+
+# program start
 
 clear
 deck = initialize_deck
@@ -117,9 +139,12 @@ loop do # Hit or Stay
   deal!(player_hand, deck)
   prompt display_player(player_hand)
   player_total = hand_sum(player_hand)
-  # expand out display for more cards so I can see them
   prompt "Player total is #{player_total}"
+  if bust?(player_hand)
+    prompt "Bust! Total is #{hand_sum(player_hand)}"
+    break
+  end
 end
 
-
+p player_hand
 # need to handle ace total on bust -- separate method I think.
