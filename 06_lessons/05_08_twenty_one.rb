@@ -1,6 +1,14 @@
+require "pry"
+require "pry-byebug"
+
+# compared to solution
+# keep a scores
+# do robocop
+
 LIMIT = 21
-PLAYER = { name: "You", hand: [], total: 0 }
-DEALER = { name: "Dealer", hand: [], total: 0 }
+PLAYER = { name: "You", hand: [], total: 0, match: 0 }
+DEALER = { name: "Dealer", hand: [], total: 0, match: 0 }
+DEALER_STOP = 17
 
 def clear_cards(hash)
   hash[:hand] = []
@@ -9,14 +17,14 @@ end
 
 def initialize_deck
   deck = []
-  starter_array = %w(A K Q J 10 9 8 7 6 5 4 3 2)
+  starter_array = %w[A K Q J 10 9 8 7 6 5 4 3 2]
   starter_array.each do |card|
     deck << ["H", card]
     deck << ["D", card]
     deck << ["C", card]
     deck << ["S", card]
   end
-  deck
+  deck.shuffle
 end
 
 def clear
@@ -48,7 +56,7 @@ def sum(hash)
       value.each { |card| card_values << card_value(card[1]) }
       total = card_values.reduce(:+)
       if total > LIMIT
-        count = value.select { |card| card[1]=="A" }.count
+        count = value.select { |card| card[1] == "A" }.count
         total = ace_value(total, count)
       end
       hash[:total] = total
@@ -58,47 +66,46 @@ end
 
 def ace_value(total, count)
   while count > 0
-    break if total <= 21 #LIMIT
-      total -= 10
-      count -= 1
+    break if total <= LIMIT
+    total -= 10
+    count -= 1
   end
   total
 end
 
-
 def card_value(card)
-  value = nil
   if ["K", "Q", "J"].include?(card)
-    value = 10
+    10
   elsif card == "A"
-    value = 11
+    11
   else
-    value = card.to_i
+    card.to_i
   end
-  value
 end
 
-def display_dealer(hand)
-  first_card = long_word(hand[0][1])
+def display_dealer(hash)
+  first_card = long_word(hash[:hand][0][1])
   blank_line
   prompt "Dealer has: #{first_card} and unknown card"
 end
 
-def display_player(hand, total, name="You")
+def display_player(hash)
   word_array = []
-  hand.each do |card|
-    word_array << long_word(card[1])
+  hash.each do |key, value|
+    if key == :hand
+      value.each { |card| word_array << long_word(card[1]) }
+    end
   end
-  name == "You" ? have = "have" : have = "has"
-  prompt "#{name} #{have}:   #{joinor(word_array)}" \
-  " ... ... #{total} is the total"
+  hv = hash[:name] == "You" ? "have" : "has"
+  prompt "#{hash[:name]} #{hv}:   #{joinor(word_array)}" \
+  " ... ... #{hash[:total]} is the total"
 end
 
-def display_each_card(hand, name)
-  card = long_word(hand.last[1])
-  name == "You" ? draw = "draw" : draw = "draws"
-  prompt "#{name} #{draw} a #{card}"
-  sleep(1)
+def display_each_card(hash)
+  card = long_word(hash[:hand].last[1])
+  draw = hash[:name] == "You" ? "draw" : "draws"
+  prompt "#{hash[:name]} #{draw}: #{card}"
+  sleep(0.5)
 end
 
 def joinor(ary, sep=", ", conj="and")
@@ -126,14 +133,14 @@ def bust?(hash)
   hash[:total] > LIMIT
 end
 
-def auto_stay?(hand)
-  hand == LIMIT ? true : false
+def auto_stay?(hash)
+  hash[:total] == LIMIT ? true : false
 end
 
 def display_auto_stay
-  sleep(1)
-  prompt "Let's just assume you stay!"
-  sleep(1)
+  sleep(0.5)
+  prompt "Stay!"
+  sleep(0.5)
   blank_line
 end
 
@@ -159,18 +166,18 @@ def display_dealer_bust
   prompt "You win!!! Congratulations!"
 end
 
-def display_second_card(dealer)
-  card = long_word(dealer[1][1])
+def display_second_card(hash)
+  card = long_word(hash[:hand][1][1])
   prompt "Dealer's second card is a #{card}"
 end
 
 def display_result(player, dealer)
-  sleep(1)
+  sleep(0.5)
   blank_line
-  prompt "Your total is #{player}"
-  if dealer > player
+  prompt "Your total is #{player[:total]}"
+  if dealer[:total] > player[:total]
     prompt "Dealer wins. Better luck next time."
-  elsif player > dealer
+  elsif player[:total] > dealer[:total]
     prompt "You WIN! CONGRATULATIONS!"
   else
     prompt "Even scores ... ... no winner, no loser."
@@ -197,39 +204,36 @@ end
 
 loop do # game loop
   clear
-  clear_cards(PLAYER)
-  clear_cards(DEALER)
+  [PLAYER, DEALER].each { |plr| clear_cards(plr) }
   deck = initialize_deck
+  [PLAYER, DEALER].each { |plr| deal!(plr, deck, 2) }
 
-  deal!(PLAYER, deck, 2)
-  deal!(DEALER, deck, 2)
-
-  display_dealer(DEALER[:hand])
-  display_player(PLAYER[:hand], PLAYER[:total])
+  display_dealer(DEALER)
+  display_player(PLAYER)
 
   loop do # Hit or stay
-    break unless hit?
-
-    deal!(PLAYER, deck)
-    display_each_card(PLAYER[:hand], "You")
-    display_player(PLAYER[:hand], PLAYER[:total])
-
-    if bust?(PLAYER)
-      display_player_bust
+    if auto_stay?(PLAYER)
+      display_auto_stay
       break
     end
 
-    if auto_stay?(PLAYER[:total])
-      display_auto_stay
+    break unless hit?
+
+    deal!(PLAYER, deck)
+    display_each_card(PLAYER)
+    display_player(PLAYER)
+
+    if bust?(PLAYER)
+      display_player_bust
       break
     end
   end
 
   if PLAYER[:total] <= LIMIT
     loop do # dealer
-      break if DEALER[:total] >= 17
+      break if DEALER[:total] >= DEALER_STOP
       deal!(DEALER, deck)
-      display_each_card(DEALER[:hand], "Dealer")
+      display_each_card(DEALER)
     end
     if bust?(DEALER)
       display_dealer_bust
@@ -238,9 +242,9 @@ loop do # game loop
   end
 
   if !bust?(DEALER) && !bust?(PLAYER)
-    display_second_card(DEALER[:hand])
-    display_player(DEALER[:hand], DEALER[:total], "Dealer")
-    display_result(PLAYER[:total], DEALER[:total])
+    display_second_card(DEALER)
+    display_player(DEALER)
+    display_result(PLAYER, DEALER)
   end
 
   break if quit_game?
