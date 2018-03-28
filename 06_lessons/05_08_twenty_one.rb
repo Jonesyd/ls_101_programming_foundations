@@ -5,7 +5,7 @@ LIMIT = 21
 DEALER_STOP = 17
 WIN_SCORE = 5
 
-def clear_cards(hash)
+def clear_cards!(hash)
   hash[:hand] = []
   hash[:total] = 0
 end
@@ -47,11 +47,11 @@ def deal!(hash, deck, crds=1)
     hash[:hand] << card
     deck.delete(card)
   end
-  sum(hash)
+  sum!(hash)
   nil
 end
 
-def sum(hash)
+def sum!(hash)
   hash.each do |key, value|
     if key == :hand
       card_values = []
@@ -228,7 +228,7 @@ def match_winner(plyr, dlr)
   [plyr, dlr].select { |hash| hash[:score] >= WIN_SCORE }
 end
 
-def reset_score(plyr, dlr)
+def reset_score!(plyr, dlr)
   [plyr, dlr].each { |hash| hash[:score] = 0 }
 end
 
@@ -244,7 +244,7 @@ loop do # match loop
 
   loop do # game loop
     clear
-    [player, dealer].each { |plr| clear_cards(plr) }
+    [player, dealer].each { |plr| clear_cards!(plr) }
     deck = initialize_deck
     display_score(player, dealer)
     [player, dealer].each { |plr| deal!(plr, deck, 2) }
@@ -307,7 +307,7 @@ loop do # match loop
   end
 
   break if quit_match?
-  reset_score(player, dealer)
+  reset_score!(player, dealer)
 end
 
 display_goodbye
