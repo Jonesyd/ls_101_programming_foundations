@@ -1,13 +1,10 @@
-require "pry"
-require "pry-byebug"
-
 LIMIT = 21
 DEALER_STOP = 17
 WIN_SCORE = 5
 
-def clear_cards!(hash)
-  hash[:hand] = []
-  hash[:total] = 0
+def clear_cards!(user)
+  user[:hand] = []
+  user[:total] = 0
 end
 
 def initialize_deck
@@ -41,18 +38,18 @@ def display_score(plyr, dlr)
   prompt "First to #{WIN_SCORE} wins"
 end
 
-def deal!(hash, deck, crds=1)
+def deal!(user, deck, crds=1)
   crds.times do
     card = deck.sample
-    hash[:hand] << card
+    user[:hand] << card
     deck.delete(card)
   end
-  sum!(hash)
+  sum!(user)
   nil
 end
 
-def sum!(hash)
-  hash.each do |key, value|
+def sum!(user)
+  user.each do |key, value|
     if key == :hand
       card_values = []
       value.each { |card| card_values << card_value(card[1]) }
@@ -61,7 +58,7 @@ def sum!(hash)
         count = value.select { |card| card[1] == "A" }.count
         total = ace_value(total, count)
       end
-      hash[:total] = total
+      user[:total] = total
     end
   end
 end
@@ -85,29 +82,29 @@ def card_value(card)
   end
 end
 
-def display_dealer(hash)
-  first_card = long_word(hash[:hand][0][1])
+def display_dealer(user)
+  first_card = long_word(user[:hand][0][1])
   blank_line
   prompt "Dealer has: #{first_card} and unknown card"
 end
 
-def display_hand(hash)
+def display_hand(user)
   word_array = []
-  hash.each do |key, value|
+  user.each do |key, value|
     if key == :hand
       value.each { |card| word_array << long_word(card[1]) }
     end
   end
   blank_line
-  hv = hash[:name] == "You" ? "have" : "has"
-  prompt "#{hash[:name]} #{hv}:   #{joinor(word_array)}" \
-  " ... ... #{hash[:total]} is the total"
+  hv = user[:name] == "You" ? "have" : "has"
+  prompt "#{user[:name]} #{hv}:   #{joinor(word_array)}" \
+  " ... ... #{user[:total]} is the total"
 end
 
-def display_each_card(hash)
-  card = long_word(hash[:hand].last[1])
-  draw = hash[:name] == "You" ? "draw" : "draws"
-  prompt "#{hash[:name]} #{draw}: #{card}"
+def display_each_card(user)
+  card = long_word(user[:hand].last[1])
+  draw = user[:name] == "You" ? "draw" : "draws"
+  prompt "#{user[:name]} #{draw}: #{card}"
   sleep(0.5)
 end
 
@@ -132,17 +129,17 @@ def long_word(letter)
   end
 end
 
-def bust?(hash)
-  hash[:total] > LIMIT
+def bust?(user)
+  user[:total] > LIMIT
 end
 
-def winner(hash)
-  return if hash.nil?
-  hash[:score] += 1
+def winner(user)
+  return if user.nil?
+  user[:score] += 1
 end
 
-def auto_stay?(hash)
-  hash[:total] == LIMIT ? true : false
+def auto_stay?(user)
+  user[:total] == LIMIT
 end
 
 def display_auto_stay
@@ -160,7 +157,7 @@ def hit?
     break if ["h", "s"].include?(decision)
     prompt "Okay ... just type a 'h' or 's'"
   end
-  decision == "h" ? true : false
+  decision == "h"
 end
 
 def display_player_bust
@@ -174,8 +171,8 @@ def display_dealer_bust
   prompt "You win!!! Congratulations!"
 end
 
-def display_second_card(hash)
-  card = long_word(hash[:hand][1][1])
+def display_second_card(user)
+  card = long_word(user[:hand][1][1])
   prompt "Dealer's second card is a #{card}"
 end
 
@@ -187,14 +184,14 @@ def find_winner(plyr, dlr)
   end
 end
 
-def display_result(hash)
+def display_result(user)
   sleep(0.5)
   blank_line
-  if hash.nil?
+  if user.nil?
     prompt "Even scores ... ... no winner, no loser."
-  elsif hash[:name] == "You"
+  elsif user[:name] == "You"
     prompt "You WIN! CONGRATULATIONS!"
-  elsif hash[:name] == "Dealer"
+  elsif user[:name] == "Dealer"
     prompt "Dealer wins. Better luck next time."
   end
 end
@@ -208,7 +205,7 @@ def quit_match?
     break if ["y", "n"].include?(answer)
     prompt "Okay ... just type a 'y' or 'n'"
   end
-  answer == "n" ? true : false
+  answer == "n"
 end
 
 def ready?
@@ -221,15 +218,15 @@ def ready?
     prompt "Okay, just type a 'h' when you want to be dealt " \
            "or 'x to exit'"
   end
-  answer == "x" ? true : false
+  answer == "x"
 end
 
 def match_winner(plyr, dlr)
-  [plyr, dlr].select { |hash| hash[:score] >= WIN_SCORE }
+  [plyr, dlr].select { |user| user[:score] >= WIN_SCORE }
 end
 
 def reset_score!(plyr, dlr)
-  [plyr, dlr].each { |hash| hash[:score] = 0 }
+  [plyr, dlr].each { |user| user[:score] = 0 }
 end
 
 def display_goodbye
