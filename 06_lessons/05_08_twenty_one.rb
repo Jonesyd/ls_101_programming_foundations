@@ -1,14 +1,11 @@
+# change PLAYER DEALER constants to variables.
+
 require "pry"
 require "pry-byebug"
 
-# compared to solution
-# keep a scores
-# do robocop
-
 LIMIT = 21
-PLAYER = { name: "You", hand: [], total: 0, match: 0 }
-DEALER = { name: "Dealer", hand: [], total: 0, match: 0 }
 DEALER_STOP = 17
+WIN_SCORE = 5
 
 def clear_cards(hash)
   hash[:hand] = []
@@ -37,6 +34,13 @@ end
 
 def prompt(msg)
   puts ">>  #{msg}"
+end
+
+def display_score(plyr, dlr)
+  blank_line
+  prompt "Player score: #{plyr[:score]} | " \
+         "Dealer score: #{dlr[:score]}"
+  prompt "First to #{WIN_SCORE} wins"
 end
 
 def deal!(hash, deck, crds=1)
@@ -133,6 +137,11 @@ def bust?(hash)
   hash[:total] > LIMIT
 end
 
+def winner(hash)
+  return if hash.nil?
+  hash[:score] += 1
+end
+
 def auto_stay?(hash)
   hash[:total] == LIMIT ? true : false
 end
@@ -171,29 +180,60 @@ def display_second_card(hash)
   prompt "Dealer's second card is a #{card}"
 end
 
-def display_result(player, dealer)
+def find_winner(plyr, dlr)
+  if plyr[:total] > dlr[:total]
+    plyr
+  elsif plyr[:total] < dlr[:total]
+    dlr
+  else
+    nil
+  end
+end
+
+def display_result(hash)
   sleep(0.5)
   blank_line
-  prompt "Your total is #{player[:total]}"
-  if dealer[:total] > player[:total]
-    prompt "Dealer wins. Better luck next time."
-  elsif player[:total] > dealer[:total]
+  prompt "Your total is #{PLAYER[:total]}"  #work needed here
+  if hash == PLAYER
     prompt "You WIN! CONGRATULATIONS!"
+  elsif hash == DEALER
+    prompt "Dealer wins. Better luck next time."
   else
     prompt "Even scores ... ... no winner, no loser."
   end
 end
 
-def quit_game?
+def quit_match?
   answer = nil
   loop do # another game
     blank_line
-    prompt "Another game (just a simple 'y' or 'n')"
+    prompt "How about another match ('y' or 'n')"
     answer = gets.chomp.downcase
     break if ["y", "n"].include?(answer)
     prompt "Okay ... just type a 'y' or 'n'"
   end
   answer == "n" ? true : false
+end
+
+def ready?
+  answer = nil
+  loop do # another game
+    blank_line
+    prompt "'y'  to deal the cards or 'x' to exit"
+    answer = gets.chomp.downcase
+    break if ["x","y"].include?(answer)
+    prompt "Okay, just type a 'y' when you want to be dealt " \
+           "or 'x to exit'"
+  end
+  answer == "x" ? true : false
+end
+
+def match_winner(plyr, dlr)
+  [plyr, dlr].select {|hash| hash[:score] >= WIN_SCORE }
+end
+
+def reset_score(plyr, dlr)
+  [plyr, dlr].each { |hash| hash[:score] = 0 }
 end
 
 def display_goodbye
@@ -202,52 +242,71 @@ def display_goodbye
   blank_line
 end
 
-loop do # game loop
-  clear
-  [PLAYER, DEALER].each { |plr| clear_cards(plr) }
-  deck = initialize_deck
-  [PLAYER, DEALER].each { |plr| deal!(plr, deck, 2) }
+loop do # match loop
+  PLAYER = { name: "You", hand: [], total: 0, score: 0 }
+  DEALER = { name: "Dealer", hand: [], total: 0, score: 0 }
+  loop do # game loop
+    clear
+    [PLAYER, DEALER].each { |plr| clear_cards(plr) }
+    deck = initialize_deck
+    display_score(PLAYER, DEALER)
+    [PLAYER, DEALER].each { |plr| deal!(plr, deck, 2) }
 
-  display_dealer(DEALER)
-  display_player(PLAYER)
-
-  loop do # Hit or stay
-    if auto_stay?(PLAYER)
-      display_auto_stay
-      break
-    end
-
-    break unless hit?
-
-    deal!(PLAYER, deck)
-    display_each_card(PLAYER)
+    display_dealer(DEALER)
     display_player(PLAYER)
 
-    if bust?(PLAYER)
-      display_player_bust
+    loop do # Hit or stay
+      if auto_stay?(PLAYER)
+        display_auto_stay
+        break
+      end
+
+      break unless hit?
+
+      deal!(PLAYER, deck)
+      display_each_card(PLAYER)
+      display_player(PLAYER)
+
+      if bust?(PLAYER)
+        display_player_bust
+        winner(DEALER)
+        break
+      end
+    end
+
+    if PLAYER[:total] <= LIMIT
+      loop do # dealer
+        break if DEALER[:total] >= DEALER_STOP
+        deal!(DEALER, deck)
+        display_each_card(DEALER)
+      end
+      if bust?(DEALER)
+        winner(PLAYER)
+        display_dealer_bust
+      else prompt "Dealer stays"
+      end
+    end
+
+    if !bust?(DEALER) && !bust?(PLAYER)
+      display_second_card(DEALER)
+      display_player(DEALER)
+      victor = find_winner(PLAYER, DEALER)
+      winner(victor)
+      display_result(victor)
+    end
+    display_score(PLAYER, DEALER) # add parameters
+
+    match_win = match_winner(PLAYER, DEALER)
+    unless match_win.empty?
+      blank_line
+      prompt "MATCH WINNER IS #{match_win[0][:name].upcase}"
       break
     end
-  end
 
-  if PLAYER[:total] <= LIMIT
-    loop do # dealer
-      break if DEALER[:total] >= DEALER_STOP
-      deal!(DEALER, deck)
-      display_each_card(DEALER)
-    end
-    if bust?(DEALER)
-      display_dealer_bust
-    else prompt "Dealer stays"
-    end
+    break if ready?
   end
-
-  if !bust?(DEALER) && !bust?(PLAYER)
-    display_second_card(DEALER)
-    display_player(DEALER)
-    display_result(PLAYER, DEALER)
-  end
-
-  break if quit_game?
+  break if quit_match?
+  reset_score(PLAYER, DEALER)
 end
 
 display_goodbye
